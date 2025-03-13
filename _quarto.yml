@@ -1,8 +1,12 @@
 project:
-  type: website
+  type: book
+  title: Assignment 2
+  output-dir: _book
+
+book:
+  chapters:
+    - index.qmd
 
 format:
-  html:
-    toc: true
-    toc-depth: 3
-    
+  pdf: 
+    documentclass: book

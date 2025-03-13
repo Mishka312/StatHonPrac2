@@ -1,15 +1,223 @@
 ---
-title: "Untitled"
+title: "Assignment 2: Parallelisation"
 format: html
 ---
 
+# Load necessary packages
 
 ```{r}
-# Load necessary packages
 
 library(doParallel)
 library(foreach)
 library(MASS)
 library(boot)
 library(iterators)
+library(knitr)
+```
+
+
+# Question 1
+
+```{r}
+# Question 1 --------------------------------------
+
+exp_random <- function() {
+  sample <- rexp(1000, 1)
+  m <- mean(sample)
+  v <- var(sample)
+  
+  vals <- list(mean = m, variance = v)
+  
+}
+
+
+## Sequentially
+results1.1 <- foreach(i = 1:100, .combine = rbind) %do% {
+  exp_random()
+}
+
+
+## Parallelisation
+
+cl <- makeCluster(detectCores() - 1)
+registerDoParallel(cl)
+
+results1.2 <- foreach(i = 1:100, .combine = rbind) %dopar% {
+  exp_random()
+}
+
+stopCluster(cl)
+
+```
+
+
+# Question 2
+
+```{r}
+
+
+## Single bootstraps----------------------
+Bstrap <- function() {
+  bs <- sample(galaxies, replace = T)
+  med <- median(bs)
+  
+  return(med)
+}
+
+### PARALLELISATION
+
+TrueMed <- median(galaxies) #20833.5
+
+t1 <- system.time({
+  cl <- makeCluster(detectCores() - 1)
+  registerDoParallel(cl)
+  
+  results2.1 <- foreach(i = 1:100, .combine = rbind, .packages='MASS') %dopar% {
+    Bstrap()
+  }
+  
+  stopCluster(cl)
+})
+
+### SEQUENTIAL
+
+bs_vals <- numeric(100)
+
+
+t2 <- system.time({
+  for (i in 1:100) {
+    bs_vals[i] <- Bstrap()
+  }
+})
+
+## multiple bootstraps----------------------
+
+multiple_BS <- function() {
+  mBS <- numeric(1000)
+  for (i in 1:1000) {
+    mBS[i] <- Bstrap()
+  }
+  return(invisible(mBS))
+}
+
+multiple_BS()
+
+
+### PARALLELISATION
+
+t3 <- system.time({
+  cl <- makeCluster(detectCores() - 1)
+  registerDoParallel(cl)
+  
+  results2.2 <- foreach(i = 1:100, .combine = rbind, .packages='MASS') %dopar% {
+    multiple_BS()
+  }
+  
+  stopCluster(cl)
+  
+})
+
+### SEQUENTIAL
+
+t4 <- system.time({
+  for (i in 1:100) {
+    multiple_BS()
+  }
+})
+
+
+# Compare program times
+
+
+t <- rbind(t1, t2, t3, t4)
+
+knitr::kable(t)
+# where
+# t1 is the single parallel boostrap time
+# t2 is the single sequential boostrap time
+# t3 is the multiple parallel boostrap time
+# t4 is the multiple sequential boostrap time
+
+# Comparison: sequential methods are quicker when just considering one bootstrap sample at a time. However, when considering 100 Bootstraps samples at a time, parallelisation yields a shorter time.
+
+```
+
+
+# Question 3 
+
+```{r}
+
+
+original_samp <- function() {
+  
+  os <- rexp(50, 1)
+  return(invisible(os))
+}
+
+
+
+bs <- function(x) {
+  
+  bs <- sample(x, replace = T)
+  bs_mean <- mean(bs)
+  return(bs_mean)
+}
+
+
+encompass <- function() {
+  os <- original_samp()
+  
+  bs_means <- numeric(1000)
+  
+  for (i in 1:1000) {
+    bs_means[i] <- bs(os)
+  }
+  
+  quants <- quantile(bs_means, probs = c(0.025, 0.975))
+  
+  OS_mean <- mean(os)
+  
+  CI <- sort(c(2*OS_mean - quants[2], 2*OS_mean - quants[1]))
+  #CI2 <- boot.ci(bs_means, type = "perc")
+  
+  
+  return(CI)
+  
+}
+
+encompass()
+
+# repeat encompass function multiple times eg 1000
+# will use parallelisation
+
+
+cl <- makeCluster(detectCores() - 1)
+registerDoParallel(cl)
+
+results3.1 <- foreach(i = 1:1000, .combine = rbind) %dopar% {
+  encompass()
+}
+
+stopCluster(cl)
+
+str(results3.1)
+
+results3.1[2,]
+
+counter <- numeric(nrow(results3.1))
+
+for (i in 1:nrow(results3.1)) {
+  if (results3.1[i, 1] < 1) {
+    if (results3.1[i, 2] > 1) {
+      counter[i] <- 1
+    }
+  } else{
+    counter[i] <- 0
+  }
+}
+
+coverage <- sum(counter)/ length(counter)
+coverage
+
+
 ```
