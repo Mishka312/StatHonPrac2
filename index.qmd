@@ -5,7 +5,10 @@ format: html
 ---
 
 
-### Load necessary packages
+### Requirements
+
+My Github respository link: https://github.com/Mishka312/StatHonPrac2/tree/main  
+
 
 ```{r, output = F}
 
