@@ -1,6 +1,6 @@
 project:
   type: book
-  title: Assignment 2
+  title: "BOOK"
   output-dir: _book
 
 book:

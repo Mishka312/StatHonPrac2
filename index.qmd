@@ -1,11 +1,13 @@
 ---
 title: "Assignment 2: Parallelisation"
+author: "Mishka Ramraj"
 format: html
 ---
 
-# Load necessary packages
 
-```{r}
+### Load necessary packages
+
+```{r, output = F}
 
 library(doParallel)
 library(foreach)
@@ -16,10 +18,11 @@ library(knitr)
 ```
 
 
-# Question 1
+## Question 1
+
+Below is the code associated with 2 methods. The first uses foreach() for a sequential functionality and the second for parallelisation.
 
 ```{r}
-# Question 1 --------------------------------------
 
 exp_random <- function() {
   sample <- rexp(1000, 1)
@@ -51,9 +54,12 @@ stopCluster(cl)
 ```
 
 
-# Question 2
+## Question 2
 
-```{r}
+Table 1.1 displays that sequential methods are quicker when just considering one bootstrap sample at a time. However, when considering 100 Bootstraps samples at a time, parallelisation yields a shorter time. In this demonstration, parallelisation using multiple bootstraps samples at once was faster by about 2.7 seconds.
+
+
+```{r, results = 'asis', echo = F}
 
 
 ## Single bootstraps----------------------
@@ -128,24 +134,24 @@ t4 <- system.time({
 
 # Compare program times
 
+single_parallel <- t1
+single_sequential <- t2
+multiple_parallel <- t3
+multiple_sequential <- t4
 
-t <- rbind(t1, t2, t3, t4)
+t <- rbind(single_parallel, single_sequential, multiple_parallel, multiple_sequential)
 
-knitr::kable(t)
-# where
-# t1 is the single parallel boostrap time
-# t2 is the single sequential boostrap time
-# t3 is the multiple parallel boostrap time
-# t4 is the multiple sequential boostrap time
+knitr::kable(t, caption = "Time taken to perform bootstrapping tasks using sequential and parallelised methods.")
 
-# Comparison: sequential methods are quicker when just considering one bootstrap sample at a time. However, when considering 100 Bootstraps samples at a time, parallelisation yields a shorter time.
 
 ```
 
 
-# Question 3 
+## Question 3 
 
-```{r}
+In order to estimate the coverage of a bootstrap confidence interval, a sample was taken from the exponential(1) distribution. From this, the sample statistic (mean) was calculated and 100 boostraps taken. A 95% confidence interval was constructed. This process was repeated 1000 times so that we accumulated 1000 bootstrap confidence intervals. From all of these, the proportion of confidence intervals containing the true mean (1) was calculated. This told us the *coverage* of the bootstrap confidence intervals.
+
+```{r, echo = F}
 
 
 original_samp <- function() {
@@ -185,7 +191,7 @@ encompass <- function() {
   
 }
 
-encompass()
+#encompass()
 
 # repeat encompass function multiple times eg 1000
 # will use parallelisation
@@ -200,10 +206,6 @@ results3.1 <- foreach(i = 1:1000, .combine = rbind) %dopar% {
 
 stopCluster(cl)
 
-str(results3.1)
-
-results3.1[2,]
-
 counter <- numeric(nrow(results3.1))
 
 for (i in 1:nrow(results3.1)) {
@@ -217,7 +219,9 @@ for (i in 1:nrow(results3.1)) {
 }
 
 coverage <- sum(counter)/ length(counter)
-coverage
+#coverage
 
 
 ```
+
+In this scenario, the value for coverage is `r coverage`.
