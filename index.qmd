@@ -10,6 +10,9 @@ format: html
 My Github respository link: https://github.com/Mishka312/StatHonPrac2/tree/main  
 
 
+
+Load necessary packages: 
+
 ```{r, output = F}
 
 library(doParallel)
