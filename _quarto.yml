@@ -10,3 +10,6 @@ book:
 format:
   pdf: 
     documentclass: book
+    
+execute: 
+  cache: true
